@@ -27,11 +27,12 @@ connection.query = util.promisify(connection.query);
 connection.connect((err) => {
     if (err) throw err;
 
-    // begin application
+    // Begin application
     console.table('Company Employee Tracker');
     beginApplication();
 });
 
+// Create a function to ask the user questions upon starting application, and can be used throughout
 const beginApplication = async () => {
     try {
         let option = await inquirer.prompt({
@@ -71,9 +72,11 @@ const beginApplication = async () => {
     };
 };
 
+// View the departments in the company
 const viewDepartments = async () => {
     console.log("DEPARTMENT VIEW");
     try {
+        // Takes information from the sql database and displays it in the terminal
         let query = 'SELECT * FROM department';
         connection.query(query, function (err, res) {
             if (err) throw err;
@@ -88,6 +91,7 @@ const viewDepartments = async () => {
     }
 }
 
+// View the employees within the company
 const viewEmployee = async () => {
     console.log("EMPLOYEE VIEW");
     try {
@@ -105,6 +109,7 @@ const viewEmployee = async () => {
     }
 }
 
+// View the roles available within the company
 const viewRoles = async () => {
     console.log("ROLES VIEW");
     try {
@@ -122,6 +127,7 @@ const viewRoles = async () => {
     }
 }
 
+// Allows user to add a new department name
 const addDepartment = async () => {
     try {
         console.log('ADD A NEW DEPARTMENT');
@@ -131,7 +137,7 @@ const addDepartment = async () => {
             name: 'newDepartment',
             message: 'What is the name of the new department?',
         });
-        let departmentName = await connection.query('INSERT INTO department SET ?', {
+        await connection.query('INSERT INTO department SET ?', {
             department_name: inputDepartment.newDepartment
         });
         console.log(`${inputDepartment.newDepartment} added!`)
@@ -142,6 +148,7 @@ const addDepartment = async () => {
     }
 }
 
+// Adds a new role to the company
 const addRole = async () => {
     try {
         console.log('ADD A NEW ROLE');
@@ -179,6 +186,7 @@ const addRole = async () => {
     }
 }
 
+// Function that gets information from sql database 
 const getDepartments = () => new Promise((resolve, reject) => {
     let query = 'SELECT * FROM department';
     connection.query(query, function (err, res) {
@@ -190,6 +198,7 @@ const getDepartments = () => new Promise((resolve, reject) => {
     });
 });
 
+// Allows user to add a new employee, based on first name, last name, and their role
 const addEmployee = async () => {
     try {
         console.log('ADD NEW EMPLOYEE');
@@ -227,6 +236,7 @@ const addEmployee = async () => {
     }
 }
 
+// Function to get roles from the sql database
 const getRoles = () => new Promise((resolve, reject) => {
     let query = 'SELECT * FROM employee_role';
     connection.query(query, function (err, res) {
@@ -238,6 +248,7 @@ const getRoles = () => new Promise((resolve, reject) => {
     });
 });
 
+// Allows user to update existing employee role
 const updateEmployeeRole = async () => {
     try {
         console.log('UPDATE EXISTING EMPLOYEE ROLE');

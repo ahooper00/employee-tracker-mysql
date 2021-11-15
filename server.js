@@ -165,13 +165,19 @@ const addRole = async () => {
                 message: 'What is the department name that this role belongs to?',
                 choices: departmentChoices,
             }
-        ]); 
-        departments.find(dept => dept.department_name === inputRole.departmentName).id;
+        ]);
+        let departmentId = departments.find(dept => dept.department_name === inputRole.departmentName).id;
+        await connection.query('INSERT INTO employee_role SET ?', {
+            department_id: departmentId,
+            title: inputRole.newRole,
+            salary: inputRole.salary
+        });
+        console.log(`${inputRole.newRole} added!`)
+        beginApplication();
     } catch (err) {
         console.log(err);
     }
 }
-
 
 const getDepartments = () => new Promise((resolve, reject) => {
     let query = 'SELECT * FROM department';
@@ -182,4 +188,52 @@ const getDepartments = () => new Promise((resolve, reject) => {
         console.log(departmentList);
         resolve(departmentList);
     });
-})
+});
+
+const addEmployee = async () => {
+    try {
+        console.log('ADD NEW EMPLOYEE');
+        const employees = await getEmployees();
+        const employeeChoices = employees.map(empl => empl.title)
+
+        let inputEmployee = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'firstName',
+                message: 'What is the new employee first name?',
+            },
+            {
+                type: 'input',
+                name: 'lastName',
+                message: 'What is the employee last name?',
+            },
+            {
+                type: 'list',
+                name: 'role',
+                message: 'What is the role of the new employee?',
+                choices: employeeChoices,
+            }
+        ]);
+        let employeeRole = employees.find(empl => empl.title === inputEmployee.role).id;
+        await connection.query('INSERT INTO employee SET ?', {
+            role_id: employeeRole,
+            first_name: inputEmployee.firstName,
+            last_name: inputEmployee.lastName,
+        });
+        console.log(`${inputEmployee.role} added!`)
+        beginApplication();
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+const getEmployees = () => new Promise((resolve, reject) => {
+    let query = 'SELECT * FROM employee_role';
+    connection.query(query, function (err, res) {
+        if (err) reject(err);
+        let employeeList = [];
+        res.forEach(employee => employeeList.push(employee));
+        console.log(employeeList);
+        resolve(employeeList);
+    });
+});

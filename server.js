@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const express = require('express');
 const mysql = require('mysql2');
+const util = require('util');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -10,46 +11,76 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // Connect to database
-const db = mysql.createConnection(
+let connection = mysql.createConnection(
     {
-      host: 'localhost',
-      // MySQL username,
-      user: 'root',
-      // TODO: Add MySQL password here
-      password: 'password',
-      database: 'company_db'
+        host: 'localhost',
+        user: 'root',
+        password: 'password',
+        database: 'company_db',
     },
-    console.log(`Connected to the movies_db database.`)
-  );
+    console.log(`Connected to the company_db database.`)
+);
 
+connection.query = util.promisify(connection.query);
 
+connection.connect((err) => {
+    if (err) throw err;
 
+    // begin application
+    console.table('Company Employee Tracker');
+    beginApplication();
+});
 
-
-
-
-
-const firstQuestionPrompt = () => {
-    return inquirer.prompt([
-        {
+const beginApplication = async () => {
+    try {
+        let option = await inquirer.prompt({
             type: 'list',
             name: 'options',
             message: 'What would you like to do?',
-            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role']
-        }
-    ]).then
+            choices: ['View all departments', 'View all employees', 'View all roles', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role']
+        });
+        switch (option.options) {
+            case 'View all departments':
+                viewDepartments();
+                break
+            case 'View all employees':
+            viewEmployee();
+        };
+    } catch (err) {
+        console.log(err);
+    };
+};
+
+const viewDepartments = async () => {
+    console.log("DEPARTMENT VIEW");
+    try {
+        let query = 'SELECT * FROM department';
+        connection.query(query, function (err, res) {
+            if (err) throw err;
+            let departmentList = [];
+            res.forEach(department => departmentList.push(department));
+            console.table(departmentList);
+            beginApplication();
+        });
+    } catch (err) {
+        console.log(err);
+        beginApplication()
+    }
 }
 
-// const firstQuestionPrompt = () => {
-//     return inquirer.prompt([
-//         {
-//             type: 'list',
-//             name: 'members',
-//             message: `Do you want to add a team member?`,
-//             choices: ['Yes', 'No'],
-//         }
-//     ]).then(answers => {
-//         const addTeamMember = answers.members;
-//         return addTeamMember === 'Yes'
-//     })
-// }
+const viewEmployee = async () => {
+    console.log("EMPLOYEE VIEW");
+    try {
+        let query = 'SELECT * FROM employee';
+        connection.query(query, function (err, res) {
+            if (err) throw err;
+            let employeeList = [];
+            res.forEach(employee => employeeList.push(employee));
+            console.table(employeeList);
+            beginApplication();
+        });
+    } catch (err) {
+        console.log(err);
+        beginApplication();
+    }
+}

@@ -3,7 +3,6 @@ const express = require('express');
 const mysql = require('mysql2');
 const util = require('util');
 const { request } = require('http');
-const AddEntriesFromIterable = require('es-abstract/2019/AddEntriesFromIterable');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -146,8 +145,10 @@ const addDepartment = async () => {
 const addRole = async () => {
     try {
         console.log('ADD A NEW ROLE');
+        const departments = await getDepartments();
+        const departmentChoices = departments.map(dept => dept.department_name)
 
-        let inputRole = await inquirer.prompt(
+        let inputRole = await inquirer.prompt([
             {
                 type: 'input',
                 name: 'newRole',
@@ -155,19 +156,30 @@ const addRole = async () => {
             },
             {
                 type: 'input',
-                name: 'departmentId',
-                message: 'What is the department ID that the role belongs to?',
+                name: 'salary',
+                message: 'What is the salary of this new role?',
             },
             {
                 type: 'list',
-                name: 'salary',
-                message: 'What department ID does this new role have?',
-                choices: department.map((department_id) => {
-                    return {
-                        name: department_id.department_name,
-                        value: department_id.id,
-                    }
-                })
-            });
+                name: 'departmentName',
+                message: 'What is the department name that this role belongs to?',
+                choices: departmentChoices,
+            }
+        ]); 
+        departments.find(dept => dept.department_name === inputRole.departmentName).id;
+    } catch (err) {
+        console.log(err);
     }
 }
+
+
+const getDepartments = () => new Promise((resolve, reject) => {
+    let query = 'SELECT * FROM department';
+    connection.query(query, function (err, res) {
+        if (err) reject(err);
+        let departmentList = [];
+        res.forEach(department => departmentList.push(department));
+        console.log(departmentList);
+        resolve(departmentList);
+    });
+})
